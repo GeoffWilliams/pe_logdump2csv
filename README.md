@@ -53,7 +53,8 @@ Or install it yourself as:
 1. `cd` into a directory of log files
 2. `pe_logdump2csv csv --pick xxx,yyy,zzz`
   * This will output CSV on the commandline for each of the listed JSON keys
-  * Redirect output to a file and it can then be opened in Excel
+  * The JSON keys should not be in inverted commas ("").
+  * Redirect output to a file and it can then be opened in Excel (i.e.  `pe_logdump2csv csv --pick xxx,yyy,zzz > example.csv`)
   * A header line will be printed, the timestamp is obtained from the filename
   * Files must be called `SOMETHING-date.json` - we throw away the `SOMETHING` and the `.json` to obtain the timestamp
   * You can pick as many fields as you like, just delimit them by commas with no spaces
@@ -99,7 +100,8 @@ timestamp,pe-jruby-metrics.status.experimental.metrics.average-borrow-time,pe-jr
 10_28_16_09:40,1259,2,enabled
 ```
 
-
+## Commonly used Puppet metrics
+TODO: Add some example CLI commands to grab commonly used values to allow a quick copy-paste.
 
 ## Obtaining logs
 TODO: PR gratefully accepted :)
