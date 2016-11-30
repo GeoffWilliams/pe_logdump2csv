@@ -1,0 +1,59 @@
+#!/usr/bin/env ruby
+require 'pe_logdump2csv'
+require 'escort'
+require 'json'
+
+Escort::App.create do |app|
+  app.version PeLogdump2csv::VERSION
+  app.summary "pe_logdump2csv"
+  app.description "Cherry pick json keys from a directory full of files into CSV"
+
+  app.command :csv do |command|
+    command.summary "cherrypick json values"
+    command.description "Scan all json files in the current directory for json values and output CSV"
+    command.options do |opts|
+      opts.opt(:pick,
+        'Path to JSON data to pick, delimited by periods.  eg:  pe-jruby-metrics.status.experimental.metrics.average-borrow-time',
+        :long    => '--pick',
+        :default => 'pe-jruby-metrics.status.experimental.metrics.average-borrow-time'
+      )
+    end
+    command.action do |options, arguments|
+      cmd = :csv
+      pick_raw  = options[:global][:commands][cmd][:options][:pick]
+      if pick_raw.empty?
+        Raise "Pick list was empty"
+      end
+      picks_raw = pick_raw.split(',')
+      picks = Array.new
+      picks_raw.each { |p|
+        pick = p.split('.')
+        picks.push(pick)
+      }
+      # now we have the pick list split on periods, should look like:
+      #   [
+      #     ['foo', 'bar', 'baz']
+      #     ['blinky', 'inky', 'clive']
+      # ]
+
+      # file headers
+      Escort::Logger.output.puts "timestamp,#{pick_raw}"
+
+      Dir.glob(Dir.pwd + File::SEPARATOR + '*.json') do |json_file|
+        # get the timestamp from the filename, there doesn't seem a definitive
+        # one in the debug output
+        ts = File.basename(json_file, '.json').split('-')[1]
+        row = Array.new
+        row.push(ts)
+        if File.size(json_file) > 0
+          json = JSON.parse(File.read(json_file))
+          picks.each { |p|
+            value = p.inject(json) { |json,v| json[v] }
+            row.push(value)
+          }
+          Escort::Logger.output.puts row.join(',')
+        end
+      end
+    end
+  end
+end
